@@ -23,7 +23,6 @@ A simple, modern PDF splitting web application built with .NET 10 and Tailwind C
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd SplitPDFApp
    ```
 2. Run the application:
    ```bash
