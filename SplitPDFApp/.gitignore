@@ -1,0 +1,15 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+
+# ASP.NET Core
+appsettings.Development.json
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep

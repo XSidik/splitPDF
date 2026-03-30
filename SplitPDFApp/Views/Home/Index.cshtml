@@ -1,0 +1,61 @@
+@model SplitPDFApp.Models.PdfUploadViewModel
+@{
+    ViewData["Title"] = "Split PDF Online";
+}
+
+<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-8">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Split Your PDF</h1>
+            <p class="text-slate-500">Fast, simple, and secure PDF splitting.</p>
+        </div>
+
+        <form asp-action="SplitPDF" method="post" enctype="multipart/form-data" class="space-y-6">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm bg-red-50 p-4 rounded-lg"></div>
+
+            <div class="space-y-2">
+                <label asp-for="PdfFile" class="block text-sm font-semibold text-slate-700">Select PDF File</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-indigo-400 transition-colors cursor-pointer group">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-slate-400 group-hover:text-indigo-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-slate-600">
+                            <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
+                                <span>Upload a file</span>
+                                <input id="file-upload" asp-for="PdfFile" type="file" class="sr-only" accept="application/pdf">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-slate-500">PDF up to 10MB</p>
+                    </div>
+                </div>
+                <span asp-validation-for="PdfFile" class="text-red-500 text-xs"></span>
+                <p id="file-name" class="text-indigo-600 text-sm font-medium mt-2 hidden"></p>
+            </div>
+
+            <div>
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                    Split PDF
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const fileInput = document.getElementById('file-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+                fileNameDisplay.classList.remove('hidden');
+            } else {
+                fileNameDisplay.classList.add('hidden');
+            }
+        });
+    </script>
+}
