@@ -29,13 +29,12 @@ public class HomeController : Controller
     {
         if (!ModelState.IsValid)
         {
-            return View("Index", model);
+            return BadRequest(ModelState);
         }
 
-        if (model.PdfFile.Length == 0 || !model.PdfFile.FileName.ToLower().EndsWith(".pdf"))
+        if (model.PdfFile == null || model.PdfFile.Length == 0 || !model.PdfFile.FileName.ToLower().EndsWith(".pdf"))
         {
-            ModelState.AddModelError("PdfFile", "Please upload a valid PDF file.");
-            return View("Index", model);
+            return BadRequest("Please upload a valid PDF file.");
         }
 
         var tempFolder = Path.Combine(_env.WebRootPath, "uploads", Guid.NewGuid().ToString());
@@ -54,7 +53,8 @@ public class HomeController : Controller
             // Split PDF
             var inputDocument = PdfReader.Open(filePath, PdfDocumentOpenMode.Import);
             var pageCount = inputDocument.PageCount;
-            var splitFiles = new List<string>();
+            var splitFiles = new List<object>();
+            var allFilePaths = new List<string>();
 
             for (int i = 0; i < pageCount; i++)
             {
@@ -64,7 +64,16 @@ public class HomeController : Controller
                 var splitFileName = $"{fileName}_page_{i + 1}.pdf";
                 var splitPath = Path.Combine(tempFolder, splitFileName);
                 outputDocument.Save(splitPath);
-                splitFiles.Add(splitPath);
+                allFilePaths.Add(splitPath);
+
+                var bytes = await System.IO.File.ReadAllBytesAsync(splitPath);
+                var base64 = Convert.ToBase64String(bytes);
+
+                splitFiles.Add(new {
+                    pageNumber = i + 1,
+                    fileName = splitFileName,
+                    data = base64
+                });
             }
 
             // Zip files
@@ -73,25 +82,29 @@ public class HomeController : Controller
 
             using (var zip = new ZipFile())
             {
-                foreach (var file in splitFiles)
+                foreach (var file in allFilePaths)
                 {
                     zip.AddFile(file, "");
                 }
                 zip.Save(zipPath);
             }
 
-            var bytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            var zipBase64 = Convert.ToBase64String(zipBytes);
 
-            // Cleanup temp folder (optional, better in a background task or later)
-            // For now, return the file and we can delete the folder after
-            
-            return File(bytes, "application/zip", zipFileName);
+            return Json(new {
+                success = true,
+                fileName = model.PdfFile.FileName,
+                pageCount = pageCount,
+                pages = splitFiles,
+                zipData = zipBase64,
+                zipFileName = zipFileName
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error splitting PDF");
-            ModelState.AddModelError("", "An error occurred while processing the PDF.");
-            return View("Index", model);
+            return StatusCode(500, "An error occurred while processing the PDF.");
         }
     }
 
